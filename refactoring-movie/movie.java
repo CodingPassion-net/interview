@@ -1,13 +1,12 @@
-package bad.robot.refactoring.chapter1;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Customer {
 
-    private String name;
-    private List<Rental> rentals = new ArrayList<Rental>();
+    private final String name;
+    private final List<Rental> rentals = new ArrayList<Rental>();
 
-    public Customer(String name) {
+    public Customer(final String name) {
         this.name = name;
     }
 
@@ -15,7 +14,7 @@ public class Customer {
         return name;
     }
 
-    public void addRental(Rental rental) {
+    public void addRental(final Rental rental) {
         rentals.add(rental);
     }
 
@@ -24,7 +23,7 @@ public class Customer {
         int frequentRenterPoints = 0;
 
         String result = "Rental record for " + getName() + "\n";
-        for (Rental rental : rentals) {
+        for (final Rental rental : rentals) {
             double amount = 0;
             switch (rental.getMovie().getPriceCode()) {
                 case Movie.REGULAR:
@@ -60,7 +59,6 @@ public class Customer {
         return result;
     }
 
-    
 }
 
 public class Movie {
@@ -68,10 +66,10 @@ public class Movie {
     public static final int REGULAR = 0;
     public static final int NEW_RELEASE = 1;
 
-    private String title;
+    private final String title;
     private int priceCode;
 
-    public Movie(String title, int priceCode) {
+    public Movie(final String title, final int priceCode) {
         this.title = title;
         this.priceCode = priceCode;
     }
@@ -84,16 +82,16 @@ public class Movie {
         return priceCode;
     }
 
-    public void setPriceCode(int priceCode) {
+    public void setPriceCode(final int priceCode) {
         this.priceCode = priceCode;
     }
 }
 
 public class Rental {
-    private Movie movie;
-    private int daysRented;
+    private final Movie movie;
+    private final int daysRented;
 
-    public Rental(Movie movie, int daysRented) {
+    public Rental(final Movie movie, final int daysRented) {
         this.movie = movie;
         this.daysRented = daysRented;
     }
