@@ -1,7 +1,7 @@
 import java.util.ArrayList;
 import java.util.List;
 
-public class Customer {
+class Customer {
 
     private final String name;
     private final List<Rental> rentals = new ArrayList<Rental>();
@@ -61,7 +61,7 @@ public class Customer {
 
 }
 
-public class Movie {
+class Movie {
     public static final int CHILDREN = 2;
     public static final int REGULAR = 0;
     public static final int NEW_RELEASE = 1;
@@ -87,7 +87,7 @@ public class Movie {
     }
 }
 
-public class Rental {
+class Rental {
     private final Movie movie;
     private final int daysRented;
 
