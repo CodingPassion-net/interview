@@ -1,95 +1,170 @@
-public class Customer {
+public class Customer
+{
     private String name;
-    private List<Rental> rentals = new List<Rental> ();
-    public Customer (String name) {
+    private List<Rental> rentals;
+    public Customer(String name)
+    {
         this.name = name;
+        this.rentals = new List<Rental>();
     }
 
-    public String getName () {
+    public String getName()
+    {
         return name;
     }
 
-    public void addRental (Rental rental) {
-        rentals.Add (rental);
+    public void addRental(Rental rental)
+    {
+        rentals.Add(rental);
     }
 
-    public String statement () {
-        double totalAmount = 0;
-        int frequentRenterPoints = 0;
+    public String statement()
+    {
+        StringBuilder statementBuilder = new StringBuilder($"Rental record for {getName()}\n");
 
-        String result = "Rental record for " + getName () + "\n";
-        foreach (var rental in rentals) {
-            double amount = 0;
-            switch (rental.getMovie ().getPriceCode ()) {
-                case Movie.REGULAR:
-                    amount += 2;
-                    if (rental.getDaysRented () > 2)
-                        amount += (rental.getDaysRented () - 2) * 1.5;
-                    break;
-                case Movie.NEW_RELEASE:
-                    amount += rental.getDaysRented () * 3;
-                    break;
-                case Movie.CHILDREN:
-                    amount += 1.5;
-                    if (rental.getDaysRented () > 3)
-                        amount += (rental.getDaysRented () - 3) * 1.5;
-                    break;
-            }
-            // add frequent renter points
-            frequentRenterPoints++;
-            // add bonus for a two day new release rental
-            if (rental.getMovie ().getPriceCode () == Movie.NEW_RELEASE && rental.getDaysRented () > 1)
-                frequentRenterPoints++;
+        var statementElements = rentals.Select(rental =>
+                                {
+                                    return new
+                                    {
+                                        Amount = rental.GetAmount(),
+                                        FrequentRenterPoints = new FrequentRenterPoints(rental).GetEarnedPoints(),
+                                        Description = $"\t{rental.getMovie().getTitle()}\t{rental.GetAmount()}"
+                                    };
+                                });
 
-            // show figures for this rental
-            result += "\t" + rental.getMovie ().getTitle () + "\t" + amount + "\n";
+        WriteOwedAmountTo(statementElements.Sum(statementElmenet => statementElmenet.Amount), statementBuilder);
+        WriteFrequentRenterPointstTo(statementElements.Sum(statementElmenet => statementElmenet.FrequentRenterPoints), statementBuilder);
 
-            totalAmount += amount;
-        }
-        result += "Amount owed is " + totalAmount + "\n";
-        result += "You earned " + frequentRenterPoints + " frequent renter points";
-        return result;
+        return statementBuilder.ToString();
+    }
+
+    private void WriteOwedAmountTo(double ownedAmount, StringBuilder statement)
+    {
+        statement.Append($"Amount owed is " + ownedAmount + "\n");
+    }
+    private void WriteFrequentRenterPointstTo(double frequentRenterPoints, StringBuilder statement)
+    {
+        statement.Append($"You earned {frequentRenterPoints} frequent renter points");
     }
 
 }
-public class Rental {
-    private Movie movie;
-    private int daysRented;
 
-    public Rental (Movie movie, int daysRented) {
-        this.movie = movie;
-        this.daysRented = daysRented;
+public class FrequentRenterPoints
+{
+    public Rental Rental { get; set; }
+    public FrequentRenterPoints(Rental rental)
+    {
+        this.Rental = rental;
     }
 
-    public Movie getMovie () {
-        return movie;
+    public int GetEarnedPoints()
+    {
+        if (EligibleForBonusPoints()) { return 2; }
+        return 1;
     }
 
-    public int getDaysRented () {
-        return daysRented;
+    public bool EligibleForBonusPoints()
+    {
+        return Rental.getMovie().GetMovieRentalStrategy() is MovieNewReleaseRentalStrategy &&
+            Rental.getDaysRented() > 1;
     }
+
 }
-public class Movie {
-    public const int CHILDREN = 2;
-    public const int REGULAR = 0;
-    public const int NEW_RELEASE = 1;
+
+public class Movie
+{
 
     private String title;
     private int priceCode;
+    private MovieRentalStrategy movieRentalStrategy;
 
-    public Movie (String title, int priceCode) {
+    public Movie(String title, int priceCode, MovieRentalStrategy movieRentalStrategy)
+    {
         this.title = title;
         this.priceCode = priceCode;
+        this.movieRentalStrategy = movieRentalStrategy;
     }
 
-    public String getTitle () {
+    public String getTitle()
+    {
         return title;
     }
+    public MovieRentalStrategy GetMovieRentalStrategy()
+    {
+        return movieRentalStrategy;
+    }
 
-    public int getPriceCode () {
+    public int getPriceCode()
+    {
         return priceCode;
     }
 
-    public void setPriceCode (int priceCode) {
+    public void setPriceCode(int priceCode)
+    {
         this.priceCode = priceCode;
     }
+
+    public MovieRentalStrategy getMovieRentalStrategy()
+    {
+        return movieRentalStrategy;
+    }
+}
+
+public class Rental
+{
+    private Movie movie;
+    private int daysRented;
+
+    public Rental(Movie movie, int daysRented)
+    {
+        this.movie = movie;
+        this.daysRented = daysRented;
+    }
+    public Movie getMovie()
+    {
+        return movie;
+    }
+
+    public double GetAmount()
+    {
+        return movie.GetMovieRentalStrategy().GetRentAmount(this);
+    }
+    public int getDaysRented()
+    {
+        return daysRented;
+    }
+}
+
+public abstract class MovieRentalStrategy
+{
+    public abstract double GetRentAmount(Rental rental);
+}
+
+public class MovieRegularRentalStrategy : MovieRentalStrategy
+{
+    public override double GetRentAmount(Rental rental)
+    {
+        if (rental.getDaysRented() > 2) { return (rental.getDaysRented() - 2) * 1.5; }
+
+        return 0.0;
+    }
+}
+
+public class MovieNewReleaseRentalStrategy : MovieRentalStrategy
+{
+    public override double GetRentAmount(Rental rental)
+    {
+        return rental.getDaysRented() * 3;
+    }
+}
+
+public class MovieChildrenRentalStrategy : MovieRentalStrategy
+{
+    private const double BASE_AMOUNT = 1.5;
+    public override double GetRentAmount(Rental rental)
+    {
+        if (rental.getDaysRented() > 3) { return BASE_AMOUNT + ((rental.getDaysRented() - 3) * 1.5); }
+
+        return 0.0;
+    }
+}
