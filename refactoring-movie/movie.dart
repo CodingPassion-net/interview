@@ -1,8 +1,8 @@
 class Customer {
-  String name;
-  List<Rental> rentals = List<Rental>();
-
   Customer(this.name);
+
+  String name;
+  List<Rental> rentals = <Rental>[];
 
   void addRental(Rental rental) {
     rentals.add(rental);
@@ -26,10 +26,10 @@ class Customer {
 }
 
 class Rental {
-  Movie movie;
-  int daysRented;
+  const Rental(this.movie, this.daysRented);
 
-  Rental(this.movie, this.daysRented);
+  final Movie movie;
+  final int daysRented;
 
   double price() => movie.price(daysRented);
 
@@ -39,18 +39,18 @@ class Rental {
 }
 
 abstract class Movie {
-  final String title;
+  const Movie(this.title);
 
-  Movie(this.title);
+  final String title;
 
   double price(int days);
   int frequentRenterPoints(int days);
 }
 
 class NewReleaseMovie implements Movie {
-  final String title;
+  const NewReleaseMovie(this.title);
 
-  NewReleaseMovie(this.title);
+  final String title;
 
   @override
   double price(int days) => days * 3.0;
@@ -60,9 +60,9 @@ class NewReleaseMovie implements Movie {
 }
 
 class RegularMovie implements Movie {
-  final String title;
+  const RegularMovie(this.title);
 
-  RegularMovie(this.title);
+  final String title;
 
   @override
   double price(int days) => days > 2 ? (days - 2) * 1.5 : 2.0;
@@ -72,9 +72,9 @@ class RegularMovie implements Movie {
 }
 
 class ChildrenMovie implements Movie {
-  final String title;
+  const ChildrenMovie(this.title);
 
-  ChildrenMovie(this.title);
+  final String title;
 
   @override
   double price(int days) {
